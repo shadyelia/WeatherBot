@@ -5,7 +5,7 @@ import urllib
 import json
 import os
 
-import reverse_geocoder as rg
+
 from flask import Flask
 from flask import request
 from flask import make_response
@@ -56,19 +56,7 @@ def processRequest(req):
     res = makeWebhookResult(data)
     return res
 
-def makeYqlQueryfromlocation(req):
-    result = req.get("queryResult")
-    text = result.get("queryText")
-    numbers = text.split(",")
 
-    coordinates = (float(numbers[0]),float(numbers[1]))
-    results = rg.search(coordinates)
-    city = results[0].get("name")
-
-    if city is None:
-        return None
-
-    return "select * from weather.forecast where woeid in (select woeid from geo.places(1) where text='" + city + "')"
 
 def makeYqlQuery(req):
     result = req.get("queryResult")
