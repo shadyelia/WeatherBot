@@ -1,10 +1,6 @@
-from urllib.parse import urlparse, urlencode
-from urllib.request import urlopen, Request
-from urllib.error import HTTPError
 import urllib
 import json
 import os
-
 
 from flask import Flask
 from flask import request
@@ -48,14 +44,13 @@ def processRequest(req):
     yql_url = baseurl + urllib.parse.urlencode({'q': yql_query}) + "&format=json"
     print(yql_url)
 
-    result = urllib.request.urlopen(yql_url).read()
+    result = urllib.urlopen(yql_url).read()
     print("yql result: ")
     print(result)
 
     data = json.loads(result)
     res = makeWebhookResult(data)
     return res
-
 
 
 def makeYqlQuery(req):
@@ -91,14 +86,14 @@ def makeWebhookResult(data):
     if condition is None:
         return {}
 
-    degeree_in_C = (int(condition.get('temp')) - 32) * 5 / 9
-    if ((degeree_in_C - int(degeree_in_C)) > 0.5):
-        degeree_in_C = degeree_in_C + 1
+    degeree_in_C = (int(condition.get('temp'))- 32) * 5/9
+    if((degeree_in_C - int(degeree_in_C))>0.5):
+        degeree_in_C = degeree_in_C+1
     floating = degeree_in_C - int(degeree_in_C)
-    degeree_in_C = degeree_in_C - floating
+    degeree_in_C= degeree_in_C-floating
     degeree_in_C = str(degeree_in_C)
     speech = "Today in " + location.get('city') + ": " + condition.get('text') + \
-             ", the temperature is " + degeree_in_C + " C."
+             ", the temperature is " + degeree_in_C +" C."
 
     print("Response:")
     print(speech)
