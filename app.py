@@ -1,9 +1,13 @@
 #!/usr/bin/env python
 
+from urllib.parse import urlparse, urlencode
+from urllib.request import urlopen, Request
+from urllib.error import HTTPError
 import urllib
 import json
 import os
 
+import reverse_geocoder as rg
 from flask import Flask
 from flask import request
 from flask import make_response
@@ -29,19 +33,25 @@ def webhook():
 
 
 def processRequest(req):
+    checker = 0
     print ("started processing")
-    if req.get("queryResult").get("action") != "askingforweatherofcity":
+    if req.get("queryResult").get("action") == "askingforlocaiton":
+        checker = 1
+    elif req.get("queryResult").get("action") != "askingforweatherofcity":
         return {}
     baseurl = "https://query.yahooapis.com/v1/public/yql?"
-    yql_query = makeYqlQuery(req)
+    if (checker == 1):
+     yql_query = makeYqlQueryfromlocation(req)
+    else :
+     yql_query =makeYqlQuery(req)
     print ("yql query created")
     if yql_query is None:
         print("yqlquery is empty")
         return {}
-    yql_url = baseurl + urllib.urlencode({'q': yql_query}) + "&format=json"
+    yql_url = baseurl + urllib.parse.urlencode({'q': yql_query}) + "&format=json"
     print(yql_url)
 
-    result = urllib.urlopen(yql_url).read()
+    result = urllib.request.urlopen(yql_url).read()
     print("yql result: ")
     print(result)
 
@@ -49,6 +59,19 @@ def processRequest(req):
     res = makeWebhookResult(data)
     return res
 
+def makeYqlQueryfromlocation(req):
+    result = req.get("queryResult")
+    text = result.get("queryText")
+    numbers = text.split(",")
+
+    coordinates = (float(numbers[0]),float(numbers[1]))
+    results = rg.search(coordinates)
+    city = results[0].get("name")
+
+    if city is None:
+        return None
+
+    return "select * from weather.forecast where woeid in (select woeid from geo.places(1) where text='" + city + "')"
 
 def makeYqlQuery(req):
     result = req.get("queryResult")
@@ -83,14 +106,14 @@ def makeWebhookResult(data):
     if condition is None:
         return {}
 
-    degeree_in_C = (int(condition.get('temp'))- 32) * 5/9
-    if((degeree_in_C - int(degeree_in_C))>0.5):
-        degeree_in_C = degeree_in_C+1
+    degeree_in_C = (int(condition.get('temp')) - 32) * 5 / 9
+    if ((degeree_in_C - int(degeree_in_C)) > 0.5):
+        degeree_in_C = degeree_in_C + 1
     floating = degeree_in_C - int(degeree_in_C)
-    degeree_in_C= degeree_in_C-floating
+    degeree_in_C = degeree_in_C - floating
     degeree_in_C = str(degeree_in_C)
     speech = "Today in " + location.get('city') + ": " + condition.get('text') + \
-             ", the temperature is " + degeree_in_C +" C."
+             ", the temperature is " + degeree_in_C + " C."
 
     print("Response:")
     print(speech)
