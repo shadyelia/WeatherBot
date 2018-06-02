@@ -4,6 +4,7 @@ import urllib
 import json
 import os
 
+import reverse_geocoder as rg
 from flask import Flask
 from flask import request
 from flask import make_response
@@ -29,16 +30,22 @@ def webhook():
 
 
 def processRequest(req):
+    checker = 0
     print ("started processing")
-    if req.get("queryResult").get("action") != "askingforweatherofcity":
+    if req.get("queryResult").get("action") == "askingforlocaiton":
+        checker = 1
+    elif req.get("queryResult").get("action") != "askingforweatherofcity":
         return {}
     baseurl = "https://query.yahooapis.com/v1/public/yql?"
-    yql_query = makeYqlQuery(req)
+    if (checker == 1):
+     yql_query = makeYqlQueryfromlocation(req)
+    else :
+     yql_query =makeYqlQuery(req)
     print ("yql query created")
     if yql_query is None:
         print("yqlquery is empty")
         return {}
-    yql_url = baseurl + urllib.urlencode({'q': yql_query}) + "&format=json"
+    yql_url = baseurl + urllib.parse.urlencode({'q': yql_query}) + "&format=json"
     print(yql_url)
 
     result = urllib.urlopen(yql_url).read()
@@ -48,6 +55,21 @@ def processRequest(req):
     data = json.loads(result)
     res = makeWebhookResult(data)
     return res
+
+def makeYqlQueryfromlocation(req):
+    result = req.get("queryResult")
+    text = result.get("queryText")
+    numbers = text.split(",")
+
+    coordinates = (float(numbers[0]),float(numbers[1]))
+    results = rg.search(coordinates)
+    city = results[0].get("name")
+
+    if city is None:
+        return None
+
+    return "select * from weather.forecast where woeid in (select woeid from geo.places(1) where text='" + city + "')"
+
 
 
 def makeYqlQuery(req):
