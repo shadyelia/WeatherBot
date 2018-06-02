@@ -5,3 +5,4 @@ numpy==1.14.2
 scipy==1.0.1
 traceback2==1.4.0
 Flask==1.0.2
+reverse_geocoder==1.5.1
