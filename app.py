@@ -71,7 +71,7 @@ def makeYqlQueryfromlocation(req):
     if city is None:
         return None
 
-    return "select * from weather.forecast where woeid in (select woeid from geo.places(1) where text='" + city + "')"
+    return "select * from weather.forecast where woeid in (select woeid from geo.places(1) where text='" + city + "')and u='c'"
 
 def makeYqlQuery(req):
     result = req.get("queryResult")
@@ -80,7 +80,7 @@ def makeYqlQuery(req):
     if city is None:
         return None
 
-    return "select * from weather.forecast where woeid in (select woeid from geo.places(1) where text='" + city + "')"
+    return "select * from weather.forecast where woeid in (select woeid from geo.places(1) where text='" + city + "') and u='c'"
 
 
 def makeWebhookResult(data):
@@ -106,14 +106,14 @@ def makeWebhookResult(data):
     if condition is None:
         return {}
 
-    degeree_in_C = (int(condition.get('temp')) - 32) * 5 / 9
-    if ((degeree_in_C - int(degeree_in_C)) > 0.5):
-        degeree_in_C = degeree_in_C + 1
-    floating = degeree_in_C - int(degeree_in_C)
-    degeree_in_C = degeree_in_C - floating
-    degeree_in_C = str(degeree_in_C)
+    #degeree_in_C = (int(condition.get('temp')) - 32) * 5 / 9
+    #if ((degeree_in_C - int(degeree_in_C)) > 0.5):
+    #    degeree_in_C = degeree_in_C + 1
+    #floating = degeree_in_C - int(degeree_in_C)
+    #degeree_in_C = degeree_in_C - floating
+    #degeree_in_C = str(degeree_in_C)
     speech = "Today in " + location.get('city') + ": " + condition.get('text') + \
-             ", the temperature is " + degeree_in_C + " C."
+             ", the temperature is " + condition.get('temp') + " C."
 
     print("Response:")
     print(speech)
