@@ -113,7 +113,7 @@ def makeWebhookResult(data):
     #degeree_in_C = degeree_in_C - floating
     #degeree_in_C = str(degeree_in_C)
     speech = "Today in " + location.get('city') + ": " + condition.get('text') + \
-             ", the temperature is " + condition.get('temp') + " C."
+             ", the temperature is " + condition.get('temp') + " °C."
 
     print("Response:")
     print(speech)
